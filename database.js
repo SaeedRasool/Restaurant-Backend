@@ -1,15 +1,29 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const url = process.env.SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_KEY;
+// Project URL: Settings → API → Project URL (https://xxxxx.supabase.co)
+const url = (process.env.SUPABASE_URL || '').trim();
+// Service role key (secret): Settings → API → service_role — NOT the anon key
+const key = (
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  ''
+).trim();
 
 if (!url || !key) {
   console.error(
-    '[FATAL] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY. Set them in Railway (or .env for local).'
+    '[FATAL] Missing Supabase credentials. Set in Railway (or .env for local):'
   );
+  console.error('  SUPABASE_URL = https://<ref>.supabase.co');
+  console.error('  SUPABASE_SERVICE_KEY = <service_role JWT from Supabase → API>');
   process.exit(1);
 }
 
-const supabase = createClient(url, key);
+if (!/^https:\/\//i.test(url)) {
+  console.warn('[WARN] SUPABASE_URL should use https://');
+}
+
+const supabase = createClient(url, key, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
 module.exports = { supabase };
