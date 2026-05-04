@@ -18,6 +18,11 @@ app.use('/api/orders', orderRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', restaurant: 'Puerta de Estepa', time: new Date() }));
 
+// Railway / load balancers often probe GET /
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', hint: 'API is under /api — try GET /api/health' });
+});
+
 // Auto-delete orders older than retention period — runs every day at 3am
 cron.schedule('0 3 * * *', async () => {
   const days = parseInt(process.env.ORDER_RETENTION_DAYS || '14');
